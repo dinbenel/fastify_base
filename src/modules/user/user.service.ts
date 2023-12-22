@@ -19,8 +19,8 @@ const createUser = async (user: UserInsert) => {
         userName: userTable.userName,
         email: userTable.email,
       });
-    console.log(res);
-    return res;
+
+    return res[0];
   } catch (err) {
     console.log(err);
   }
@@ -54,8 +54,10 @@ const login = async (email: string, password: string) => {
       },
       config.accessSecret
     );
+    const { password: dbHashed, ...data } = user;
+
     return {
-      user,
+      user: data,
       accessToken,
     };
   } catch (err) {
