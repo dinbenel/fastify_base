@@ -1,17 +1,39 @@
 import { UserInsert, userTable } from "../../db/user.schema";
 import { dbClient } from "../../lib/db.client";
+import { eq } from "drizzle-orm";
+import argon2 from "argon2";
 
 const createUser = async (user: UserInsert) => {
   try {
-    const res = await dbClient.insert(userTable).values(user).returning();
+    const hashed = await argon2.hash(user.password);
+    const res = await dbClient
+      .insert(userTable)
+      .values({
+        ...user,
+        password: hashed,
+      })
+      .returning({
+        id: userTable.id,
+        userName: userTable.userName,
+        email: userTable.email,
+      });
     console.log(res);
-  } catch (error) {}
+    return res;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
-const getUserByEmail = async () => {
+const getUserByEmail = async (email: string) => {
   try {
-    const res = await dbClient.select().from(userTable);
-  } catch (error) {}
+    const res = await dbClient
+      .select()
+      .from(userTable)
+      .where(eq(userTable.email, email));
+    return res;
+  } catch (err) {
+    console.log(err);
+  }
 };
 
 export { createUser, getUserByEmail };
